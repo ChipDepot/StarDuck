@@ -34,24 +34,6 @@ impl Location {
             properties: HashMap::new(),
         };
     }
-
-    //     pub fn from_mapping(mapping: &Mapping) -> Result<Location, ParseError> {
-    //         let name = parser::extract_value_as_string(mapping, Location::NAME)?;
-    //         let ip_string = match parser::extract_value_as_string(&mapping, Location::IP) {
-    //             Ok(ip) => Some(ip),
-    //             Err(ParseError::MissingKey(_)) => None,
-    //             Err(e) => {
-    //                 panic!("{}", e.to_string())
-    //             }
-    //         };
-
-    //         let ip = match ip_string {
-    //             Some(ip) => parser::parse_ip(ip)?,
-    //             None => None,
-    //         };
-
-    //         Ok(Location::new(name, ip))
-    //     }
 }
 
 impl ToString for Location {
