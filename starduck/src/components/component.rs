@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use thiserror::Error;
 
-use super::output::IoTOutput;
 use super::properties::Property;
 
 #[derive(Debug, Clone)]
@@ -29,10 +28,35 @@ impl ToString for ComponentType {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum IoTOutput {
+    Integer,
+    Float,
+    Boolean,
+    Text,
+    Timestamp,
+}
+
+impl IoTOutput {
+    pub fn from_string(s: String) -> Result<IoTOutput, ComponentError> {
+        match s.to_lowercase().as_str() {
+            "int" => Ok(IoTOutput::Integer),
+            "integer" => Ok(IoTOutput::Integer),
+            "float" => Ok(IoTOutput::Float),
+            "bool" => Ok(IoTOutput::Boolean),
+            "text" => Ok(IoTOutput::Text),
+            "time" => Ok(IoTOutput::Timestamp),
+            _ => Err(ComponentError::InvalidIoTOutput(s)),
+        }
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum ComponentError {
     #[error("Component `{0}` has no valid component-type")]
     InvalidComponentType(String),
+    #[error("`{0}` is an invalid component output")]
+    InvalidIoTOutput(String),
 }
 
 #[derive(Debug, Clone)]
