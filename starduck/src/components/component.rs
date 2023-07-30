@@ -69,9 +69,10 @@ pub struct Component {
 }
 
 impl Component {
-    pub const COMPONENTS: &str = "components";
     pub const NAME: &str = "name";
     pub const COMPONENT_TYPE: &str = "component-type";
+    pub const COMPONENTS: &str = "components";
+    pub const PROPERTIES: &str = "properties";
     pub const OUTPUTS: &str = "outputs";
 
     pub fn new(name: String, component_type: ComponentType) -> Component {
