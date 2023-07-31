@@ -7,6 +7,8 @@ use super::properties::Property;
 pub enum ComponentType {
     Sensor,
     Actuator,
+    Aggregator,
+    Processor
 }
 
 impl ComponentType {
@@ -14,6 +16,8 @@ impl ComponentType {
         match s.to_lowercase().as_str() {
             "sensor" => Ok(ComponentType::Sensor),
             "actuator" => Ok(ComponentType::Actuator),
+            "aggregator" => Ok(ComponentType::Aggregator),
+            "processor" => Ok(ComponentType::Processor),
             s => Err(ComponentError::InvalidComponentType(s.to_string())),
         }
     }
@@ -24,6 +28,8 @@ impl ToString for ComponentType {
         match self {
             ComponentType::Sensor => String::from("sensor"),
             ComponentType::Actuator => String::from("actuator"),
+            ComponentType::Aggregator => String::from("aggregator"),
+            ComponentType::Processor => String::from("processor"),
         }
     }
 }
