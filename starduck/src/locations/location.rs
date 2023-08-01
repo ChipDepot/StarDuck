@@ -1,4 +1,4 @@
-use std::{boxed::Box, collections::HashMap, net::IpAddr};
+use std::{collections::HashMap, net::IpAddr};
 
 use thiserror::Error;
 
