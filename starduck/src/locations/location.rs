@@ -8,8 +8,8 @@ use crate::components::component::Component;
 pub struct Location {
     pub name: String,
     pub ip: Option<IpAddr>,
-    pub locations: HashMap<String, Box<Location>>,
-    pub components: HashMap<String, Box<Component>>,
+    pub locations: HashMap<String, Location>,
+    pub components: HashMap<String, Component>,
     pub properties: HashMap<String, String>,
 }
 
