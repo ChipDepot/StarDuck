@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 use thiserror::Error;
+use serde::{Deserialize, Serialize};
 
 use super::properties::Property;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum ComponentType {
     Sensor,
     Actuator,
@@ -34,7 +35,7 @@ impl ToString for ComponentType {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum IoTOutput {
     Integer,
     Float,
@@ -65,11 +66,11 @@ pub enum ComponentError {
     InvalidIoTOutput(String),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Component {
     pub name: String,
     pub component_type: ComponentType,
-    pub components: HashMap<String, Box<Component>>,
+    pub components: HashMap<String, Component>,
     pub properties: HashMap<String, Property>,
     pub outputs: HashMap<String, IoTOutput>,
 }
@@ -78,6 +79,7 @@ impl Component {
     pub const NAME: &str = "name";
     pub const COMPONENT_TYPE: &str = "component-type";
     pub const COMPONENTS: &str = "components";
+    pub const LOCATIONS: &str = "locations";
     pub const PROPERTIES: &str = "properties";
     pub const OUTPUTS: &str = "outputs";
 

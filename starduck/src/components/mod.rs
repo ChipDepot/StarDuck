@@ -1,2 +1,5 @@
 pub mod component;
-mod properties;
+pub mod properties;
+
+pub use component::{Component, ComponentError, ComponentType, IoTOutput};
+pub use properties::Property;

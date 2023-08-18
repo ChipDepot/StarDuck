@@ -1,9 +1,9 @@
-use std::time::Duration;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum Property {
-    Time(Duration),
-    Numeric(i32),
+    Integer(i64),
+    Float(f64),
     Bool(bool),
     String(String),
 }
@@ -11,8 +11,8 @@ pub enum Property {
 impl ToString for Property {
     fn to_string(&self) -> String {
         match self {
-            Property::Time(t) => t.as_secs_f64().to_string(),
-            Property::Numeric(n) => n.to_string(),
+            Property::Integer(n) => n.to_string(),
+            Property::Float(f) => f.to_string(),
             Property::Bool(b) => b.to_string(),
             Property::String(s) => s.to_string(),
         }
