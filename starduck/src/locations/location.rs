@@ -50,15 +50,23 @@ impl Location {
         None
     }
 
-    pub fn get_mut(&mut self, key: &str) -> Option<&mut Location> {
-        if let Some(location) = self.get(key) {
-            // Clone the name to avoid ownership issues
-            let location_name = location.name.clone();
-            return self.locations.get_mut(&location_name).map(|boxed_loc| &mut **boxed_loc);
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut Box<Location>> {
+        if self.locations.contains_key(key) {
+            return self.locations.get_mut(key);
+        }
+    
+        for (_, child) in &mut self.locations {
+            
+            if let Some(loc) = child.get_mut(key) {
+                // println!("{:?}", loc.name);
+                return Some(loc);
+            }
         }
 
-        None
+     None
     }
+    
+    
 
 }
 
