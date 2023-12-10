@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
-use serde::{Deserialize, Serialize};
 
 use super::properties::Property;
 
@@ -9,7 +9,7 @@ pub enum ComponentType {
     Sensor,
     Actuator,
     Aggregator,
-    Processor
+    Processor,
 }
 
 impl ComponentType {
