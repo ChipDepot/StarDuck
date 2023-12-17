@@ -1,5 +1,11 @@
-pub mod component;
-pub mod properties;
+mod component;
+mod component_error;
+mod component_types;
+mod iot_output;
+mod properties;
 
-pub use component::{Component, ComponentError, ComponentType, IoTOutput};
+pub use component::Component;
+pub use component_error::ComponentError;
+pub use component_types::ComponentType;
+pub use iot_output::IoTOutput;
 pub use properties::Property;

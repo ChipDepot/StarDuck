@@ -1,23 +1,16 @@
-use std::{collections::HashMap, net::IpAddr};
 use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, net::IpAddr};
 
-use thiserror::Error;
-
-use crate::components::component::Component;
+use crate::components::Component;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
     pub name: String,
     pub ip: Option<IpAddr>,
-    pub locations: HashMap<String, Box<Location>>,
-    pub components: HashMap<String, Component>,
+    pub locations: HashMap<String, Location>,
+    pub required_components: HashMap<String, Component>,
+    pub optional_components: HashMap<String, Component>,
     pub properties: HashMap<String, String>,
-}
-
-#[derive(Error, Debug)]
-pub enum LocationError {
-    #[error("Location `{0}` has no child locations or an ip")]
-    NoLocationIp(String),
 }
 
 impl Location {
@@ -26,17 +19,18 @@ impl Location {
     pub const LOCATIONS: &str = "locations";
     pub const PROPERTIES: &str = "properties";
 
-    pub fn new(name: String, ip: Option<IpAddr>) -> Location {
+    pub fn new(name: &str, ip: Option<IpAddr>) -> Location {
         return Location {
             locations: HashMap::new(),
-            name,
+            name: name.to_string(),
             ip,
-            components: HashMap::new(),
+            required_components: HashMap::new(),
+            optional_components: HashMap::new(),
             properties: HashMap::new(),
         };
     }
 
-    pub fn get(&self, key: &str) -> Option<&Box<Location>> {
+    pub fn get(&self, key: &str) -> Option<&Location> {
         if let Some(child) = self.locations.get(key) {
             return Some(child);
         }
@@ -50,24 +44,20 @@ impl Location {
         None
     }
 
-    pub fn get_mut(&mut self, key: &str) -> Option<&mut Box<Location>> {
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut Location> {
         if self.locations.contains_key(key) {
             return self.locations.get_mut(key);
         }
-    
+
         for (_, child) in &mut self.locations {
-            
             if let Some(loc) = child.get_mut(key) {
                 // println!("{:?}", loc.name);
                 return Some(loc);
             }
         }
 
-     None
+        None
     }
-    
-    
-
 }
 
 impl ToString for Location {

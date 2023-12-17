@@ -1,26 +1,45 @@
-use std::collections::HashMap;
+use anyhow::{bail, Result};
+use chrono::{DateTime, Local};
+use serde::{Deserialize, Serialize};
 
-use serde::{Serialize, Deserialize};
-
-use crate::component::Component;
 use crate::location::Location;
+use crate::sc_message::SCMessage;
+
+use super::ApplicationStatus;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Application {
-    // pub name: String,
-    pub locations: HashMap<String, Box<Location>>,
-    pub components: HashMap<String, Component>
+    pub name: String,
+    pub status: ApplicationStatus,
+    pub locations: Location,
+    pub last_update: Option<DateTime<Local>>,
 }
 
 impl Application {
-    pub const NAME: &str = "name";
-    pub const COMPONENTS: &str = "components";
     pub const LOCATIONS: &str = "locations";
 
-    pub fn new(locations: HashMap<String, Box<Location>>, components: HashMap<String, Component>) -> Application {
+    pub fn new(name: &str) -> Application {
         Application {
-            locations,
-            components
+            name: name.to_string(),
+            status: ApplicationStatus::Uninitialized,
+            locations: Location::new("root", None),
+            last_update: None,
         }
+    }
+
+    pub fn update_state(&mut self, message: &SCMessage) -> Result<()> {
+        let location_key = match message.get_location() {
+            Some(k) => k,
+            None => {
+                bail!("Missing `location` in message from {}", message.device_uuid);
+            }
+        };
+
+        let location = match self.locations.get_mut(&location_key) {
+            Some(k) => k,
+            None => bail!("No location was found for key `{}`", &location_key),
+        };
+
+        Ok(())
     }
 }

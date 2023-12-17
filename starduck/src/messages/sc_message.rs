@@ -33,3 +33,16 @@ pub struct SCMessage {
     pub status: String,
     pub alert: bool,
 }
+
+impl SCMessage {
+    pub fn get_location(&self) -> Option<String> {
+        self.values.get("location").map(|s| s.to_string())
+    }
+
+    pub fn get_device_outputs(&self) -> HashMap<String, Value> {
+        let mut cloned_values = self.values.clone();
+        cloned_values.remove("location");
+
+        cloned_values
+    }
+}
