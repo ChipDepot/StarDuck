@@ -2,7 +2,7 @@ mod apps;
 mod components;
 mod locations;
 mod messages;
-mod traits;
+pub mod traits;
 
 pub use apps::{Application, Status};
 pub use components::{Component, ComponentError, ComponentType, IoTOutput, Property};
