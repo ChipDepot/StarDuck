@@ -1,5 +1,5 @@
 mod application;
-mod application_status;
+mod status;
 
 pub use application::Application;
-pub use application_status::ApplicationStatus;
+pub use status::Status;

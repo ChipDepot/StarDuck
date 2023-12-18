@@ -2,15 +2,12 @@ use anyhow::{bail, Result};
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
-use crate::location::Location;
-use crate::sc_message::SCMessage;
-
-use super::ApplicationStatus;
+use crate::{traits::UpdateState, CallbackMessage, Location, SCMessage, Status};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Application {
     pub name: String,
-    pub status: ApplicationStatus,
+    pub status: Status,
     pub locations: Location,
     pub last_update: Option<DateTime<Local>>,
 }
@@ -21,13 +18,15 @@ impl Application {
     pub fn new(name: &str) -> Application {
         Application {
             name: name.to_string(),
-            status: ApplicationStatus::Uninitialized,
+            status: Status::Uninitialized,
             locations: Location::new("root", None),
             last_update: None,
         }
     }
+}
 
-    pub fn update_state(&mut self, message: &SCMessage) -> Result<()> {
+impl UpdateState for Application {
+    fn update_state(&mut self, message: &SCMessage) -> Result<CallbackMessage> {
         let location_key = match message.get_location() {
             Some(k) => k,
             None => {
@@ -40,6 +39,6 @@ impl Application {
             None => bail!("No location was found for key `{}`", &location_key),
         };
 
-        Ok(())
+        location.update_state(message)
     }
 }

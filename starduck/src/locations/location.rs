@@ -1,15 +1,18 @@
-use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, net::IpAddr};
 
-use crate::components::Component;
+use anyhow::{bail, Error, Result};
+use serde::{Deserialize, Serialize};
+
+use crate::traits::UpdateState;
+use crate::{CallbackMessage, Component, IoTOutput, SCMessage, Status};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
     pub name: String,
     pub ip: Option<IpAddr>,
+    pub status: Status,
     pub locations: HashMap<String, Location>,
-    pub required_components: HashMap<String, Component>,
-    pub optional_components: HashMap<String, Component>,
+    pub components: HashMap<String, Component>,
     pub properties: HashMap<String, String>,
 }
 
@@ -21,11 +24,11 @@ impl Location {
 
     pub fn new(name: &str, ip: Option<IpAddr>) -> Location {
         return Location {
-            locations: HashMap::new(),
             name: name.to_string(),
             ip,
-            required_components: HashMap::new(),
-            optional_components: HashMap::new(),
+            status: Status::Uninitialized,
+            locations: HashMap::new(),
+            components: HashMap::new(),
             properties: HashMap::new(),
         };
     }
@@ -57,6 +60,49 @@ impl Location {
         }
 
         None
+    }
+
+    pub fn get_mut_component_by_output(&mut self, output_key: &str) -> Option<&mut Component> {
+        self.components
+            .values_mut()
+            .find(|comp| comp.outputs.contains_key(output_key))
+    }
+}
+
+impl UpdateState for Location {
+    fn update_state(&mut self, message: &SCMessage) -> Result<CallbackMessage> {
+        let mut call_message = CallbackMessage::new();
+
+        for (key, value) in message.get_device_outputs() {
+            if let Some(component) = self.get_mut_component_by_output(&key) {
+                let expected = component.outputs.get(&key).unwrap();
+                let recieved = IoTOutput::from(value);
+
+                if *expected != recieved {
+                    component.status = Status::Fault;
+
+                    if component.required {
+                        call_message.push_required(Status::Fault);
+                    } else {
+                        call_message.push_required(Status::Fault);
+                    }
+
+                    bail!(
+                        "Invalid value recieved from message. Expected {}, got {}",
+                        expected,
+                        recieved,
+                    );
+                }
+            } else {
+                bail!(
+                    "Key `{}` was not found in the component list for `{}`",
+                    &key,
+                    &self.name
+                );
+            }
+        }
+
+        todo!()
     }
 }
 
