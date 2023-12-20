@@ -25,7 +25,7 @@ impl Application {
     }
 }
 
-impl UpdateState for Application {
+impl UpdateState<&SCMessage, CallbackMessage> for Application {
     fn update_state(&mut self, message: &SCMessage) -> Result<CallbackMessage> {
         let location_key = match message.get_location() {
             Some(k) => k,
@@ -39,6 +39,9 @@ impl UpdateState for Application {
             None => bail!("No location was found for key `{}`", &location_key),
         };
 
-        location.update_state(message)
+        match location.update_state(message) {
+            Ok(_) => todo!(),
+            Err(_) => todo!(),
+        };
     }
 }

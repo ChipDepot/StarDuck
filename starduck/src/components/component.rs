@@ -1,21 +1,20 @@
-use std::{collections::HashMap, fmt::Display};
+use std::fmt::Display;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{traits::UpdateState, CallbackMessage, SCMessage, Status};
+use crate::{traits::UpdateState, Status};
 
-use super::{ComponentType, IoTOutput};
+use super::IoTOutput;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Component {
     pub name: String,
     pub uuid: Option<Uuid>,
-    pub component_type: ComponentType,
     pub required: bool,
     pub status: Status,
-    pub outputs: HashMap<String, IoTOutput>,
+    pub output: IoTOutput,
 }
 
 impl Component {
@@ -25,21 +24,26 @@ impl Component {
     pub const PROPERTIES: &str = "properties";
     pub const OUTPUTS: &str = "outputs";
 
-    pub fn new(name: String, required: bool, component_type: ComponentType) -> Component {
+    pub fn new(name: &str, uuid: Option<Uuid>, required: bool, output: IoTOutput) -> Component {
         Component {
-            name,
-            uuid: None,
-            component_type,
+            name: name.to_string(),
+            uuid,
             required,
             status: Status::Uninitialized,
-            outputs: HashMap::new(),
+            output,
         }
     }
 }
 
-impl UpdateState for Component {
-    fn update_state(&mut self, message: &SCMessage) -> Result<CallbackMessage> {
-        todo!()
+impl UpdateState<IoTOutput, ()> for Component {
+    fn update_state(&mut self, iot_output: IoTOutput) -> Result<()> {
+        if self.output == iot_output {
+            self.status = Status::Coherent;
+        } else {
+            self.status = Status::Fault;
+        }
+
+        Ok(())
     }
 }
 
@@ -47,12 +51,11 @@ impl Display for Component {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "name: {}\nuuid: {}\ncomponent_type: {}\noutputs: {:?}",
+            "name: {}\nuuid: {}\noutput: {}",
             self.name,
             self.uuid
                 .map_or_else(|| "None".to_string(), |k| k.to_string()),
-            self.component_type.to_string(),
-            self.outputs
+            self.output
         )
     }
 }

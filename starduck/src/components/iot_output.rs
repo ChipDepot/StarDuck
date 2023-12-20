@@ -3,24 +3,22 @@ use std::{fmt::Display, str::FromStr};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::Status;
-
 use super::ComponentError;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub enum IoTOutput {
-    Number(Status),
-    Boolean(Status),
-    Text(Status),
+    Number,
+    Boolean,
+    Text,
     Invalid,
 }
 
 impl Display for IoTOutput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            IoTOutput::Number(_) => write!(f, "Number"),
-            IoTOutput::Boolean(_) => write!(f, "Boolean"),
-            IoTOutput::Text(_) => write!(f, "Text"),
+            IoTOutput::Number => write!(f, "Number"),
+            IoTOutput::Boolean => write!(f, "Boolean"),
+            IoTOutput::Text => write!(f, "Text"),
             IoTOutput::Invalid => write!(f, "Invalid"),
         }
     }
@@ -29,9 +27,9 @@ impl Display for IoTOutput {
 impl From<Value> for IoTOutput {
     fn from(value: Value) -> Self {
         match value {
-            Value::Number(_) => IoTOutput::Number(Status::Uninitialized),
-            Value::Bool(_) => IoTOutput::Boolean(Status::Uninitialized),
-            Value::String(_) => IoTOutput::Text(Status::Uninitialized),
+            Value::Number(_) => IoTOutput::Number,
+            Value::Bool(_) => IoTOutput::Boolean,
+            Value::String(_) => IoTOutput::Text,
             _ => IoTOutput::Invalid,
         }
     }
@@ -42,9 +40,9 @@ impl FromStr for IoTOutput {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "number" => Ok(IoTOutput::Number(Status::Uninitialized)),
-            "bool" => Ok(IoTOutput::Boolean(Status::Uninitialized)),
-            "text" => Ok(IoTOutput::Text(Status::Uninitialized)),
+            "number" => Ok(IoTOutput::Number),
+            "bool" => Ok(IoTOutput::Boolean),
+            "text" => Ok(IoTOutput::Text),
             _ => Err(ComponentError::InvalidIoTOutput(s.to_string())),
         }
     }
