@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::time::SystemTime;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -12,50 +13,37 @@ use super::IoTOutput;
 pub struct Component {
     pub name: String,
     pub uuid: Option<Uuid>,
-    pub required: bool,
     pub status: Status,
-    pub output: IoTOutput,
+    pub last_reading: Option<SystemTime>,
 }
 
 impl Component {
-    pub const NAME: &str = "name";
-    pub const COMPONENT_TYPE: &str = "component-type";
-    pub const LOCATIONS: &str = "locations";
-    pub const PROPERTIES: &str = "properties";
-    pub const OUTPUTS: &str = "outputs";
-
-    pub fn new(name: &str, uuid: Option<Uuid>, required: bool, output: IoTOutput) -> Component {
-        Component {
+    pub fn new(name: &str, uuid: Option<Uuid>) -> Component {
+        Self {
             name: name.to_string(),
             uuid,
-            required,
             status: Status::Uninitialized,
-            output,
+            last_reading: None,
         }
+    }
+
+    pub fn with_defaults(name: &str, uuid: Option<Uuid>) -> Self {
+        let mut new_comp = Self::new(name, uuid);
+        new_comp.status = Status::Coherent;
+        new_comp.last_reading = Some(SystemTime::now());
+
+        new_comp
     }
 }
 
 impl UpdateState<IoTOutput, ()> for Component {
-    fn update_state(&mut self, iot_output: IoTOutput) -> Result<()> {
-        if self.output == iot_output {
-            self.status = Status::Coherent;
-        } else {
-            self.status = Status::Fault;
-        }
-
-        Ok(())
+    fn update_state(&mut self, message: IoTOutput) -> Result<()> {
+        todo!()
     }
 }
 
 impl Display for Component {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "name: {}\nuuid: {}\noutput: {}",
-            self.name,
-            self.uuid
-                .map_or_else(|| "None".to_string(), |k| k.to_string()),
-            self.output
-        )
+        write!(f, "{}", serde_json::to_string_pretty(&self).unwrap())
     }
 }

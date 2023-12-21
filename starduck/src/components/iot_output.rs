@@ -5,7 +5,7 @@ use serde_json::Value;
 
 use super::ComponentError;
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq)]
 pub enum IoTOutput {
     Number,
     Boolean,

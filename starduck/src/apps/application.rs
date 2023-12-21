@@ -1,5 +1,6 @@
+use std::time::SystemTime;
+
 use anyhow::{bail, Result};
-use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
 use crate::{traits::UpdateState, CallbackMessage, Location, SCMessage, Status};
@@ -9,14 +10,14 @@ pub struct Application {
     pub name: String,
     pub status: Status,
     pub locations: Location,
-    pub last_update: Option<DateTime<Local>>,
+    pub last_update: Option<SystemTime>,
 }
 
 impl Application {
     pub const LOCATIONS: &str = "locations";
 
-    pub fn new(name: &str) -> Application {
-        Application {
+    pub fn new(name: &str) -> Self {
+        Self {
             name: name.to_string(),
             status: Status::Uninitialized,
             locations: Location::new("root", None),

@@ -3,7 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use anyhow::{bail, Error, Result};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum Status {
     Uninitialized,
     Coherent,

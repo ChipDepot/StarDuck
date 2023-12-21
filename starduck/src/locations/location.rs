@@ -1,12 +1,12 @@
 use std::{collections::HashMap, net::IpAddr};
 
-use anyhow::{bail, Error, Result};
+use anyhow::{bail, Result};
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::traits::UpdateState;
-use crate::{Component, IoTOutput, SCMessage, Status};
+use crate::{Component, DataRequirement, IoTOutput, SCMessage, Status};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -14,7 +14,7 @@ pub struct Location {
     pub ip: Option<IpAddr>,
     pub status: Status,
     pub locations: HashMap<String, Location>,
-    pub components: HashMap<String, Component>,
+    pub data_requirements: HashMap<String, DataRequirement>,
     pub properties: HashMap<String, String>,
 }
 
@@ -24,18 +24,18 @@ impl Location {
     pub const LOCATIONS: &str = "locations";
     pub const PROPERTIES: &str = "properties";
 
-    pub fn new(name: &str, ip: Option<IpAddr>) -> Location {
-        return Location {
+    pub fn new(name: &str, ip: Option<IpAddr>) -> Self {
+        Self {
             name: name.to_string(),
             ip,
             status: Status::Uninitialized,
             locations: HashMap::new(),
-            components: HashMap::new(),
+            data_requirements: HashMap::new(),
             properties: HashMap::new(),
-        };
+        }
     }
 
-    pub fn get(&self, key: &str) -> Option<&Location> {
+    pub fn get(&self, key: &str) -> Option<&Self> {
         if let Some(child) = self.locations.get(key) {
             return Some(child);
         }
@@ -49,7 +49,7 @@ impl Location {
         None
     }
 
-    pub fn get_mut(&mut self, key: &str) -> Option<&mut Location> {
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut Self> {
         if self.locations.contains_key(key) {
             return self.locations.get_mut(key);
         }
@@ -73,8 +73,16 @@ impl Location {
         match iot_output {
             IoTOutput::Invalid => bail!("Invalid IoTOutput recieved"),
             _ => {
-                let new_comp = Component::new(key, Some(uuid), false, iot_output);
-                self.components.insert(key.to_string(), new_comp);
+                let mut new_comp = Component::with_defaults(key, Some(uuid));
+
+                if let Some(data_req) = self.data_requirements.get_mut(key) {
+                    data_req.components.push(new_comp);
+                    return Ok(());
+                }
+
+                let mut new_data_req = DataRequirement::with_defaults(new_comp, iot_output);
+
+                self.data_requirements.insert(key.to_string(), new_data_req);
 
                 Ok(())
             }
@@ -87,8 +95,8 @@ impl UpdateState<&SCMessage, ()> for Location {
         for (key, value) in message.get_device_outputs() {
             let rec_iot = IoTOutput::from(value);
 
-            if let Some(comp) = self.components.get_mut(&key) {
-                comp.update_state(rec_iot)?;
+            if let Some(data_req) = self.data_requirements.get_mut(&key) {
+                data_req.update_state(rec_iot)?;
                 continue;
             };
 
