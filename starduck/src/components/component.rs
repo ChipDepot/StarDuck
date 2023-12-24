@@ -5,9 +5,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{traits::UpdateState, Status};
-
-use super::IoTOutput;
+use crate::{traits::UpdateState, SCMessage, Status};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Component {
@@ -34,11 +32,23 @@ impl Component {
 
         new_comp
     }
+
+    pub fn update_timeout_status(&mut self, max_time: SystemTime) {
+        if let Some(last) = self.last_reading {
+            match max_time.duration_since(last) {
+                Ok(_q) => todo!(),
+                Err(_) => todo!(),
+            }
+        }
+    }
 }
 
-impl UpdateState<IoTOutput, ()> for Component {
-    fn update_state(&mut self, message: IoTOutput) -> Result<()> {
-        todo!()
+impl UpdateState<&SCMessage> for Component {
+    fn update_state(&mut self, message: &SCMessage) -> Result<()> {
+        self.last_reading = Some(message.timestamp);
+        self.status = Status::Coherent;
+
+        Ok(())
     }
 }
 

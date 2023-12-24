@@ -1,3 +1,4 @@
+use std::time::SystemTime;
 use std::{collections::HashMap, net::IpAddr};
 
 use anyhow::{bail, Result};
@@ -73,15 +74,14 @@ impl Location {
         match iot_output {
             IoTOutput::Invalid => bail!("Invalid IoTOutput recieved"),
             _ => {
-                let mut new_comp = Component::with_defaults(key, Some(uuid));
+                let new_comp = Component::with_defaults(key, Some(uuid));
 
                 if let Some(data_req) = self.data_requirements.get_mut(key) {
                     data_req.components.push(new_comp);
                     return Ok(());
                 }
 
-                let mut new_data_req = DataRequirement::with_defaults(new_comp, iot_output);
-
+                let new_data_req = DataRequirement::with_defaults(new_comp, iot_output);
                 self.data_requirements.insert(key.to_string(), new_data_req);
 
                 Ok(())
@@ -90,13 +90,13 @@ impl Location {
     }
 }
 
-impl UpdateState<&SCMessage, ()> for Location {
+impl UpdateState<&SCMessage> for Location {
     fn update_state(&mut self, message: &SCMessage) -> Result<()> {
         for (key, value) in message.get_device_outputs() {
             let rec_iot = IoTOutput::from(value);
 
             if let Some(data_req) = self.data_requirements.get_mut(&key) {
-                data_req.update_state(rec_iot)?;
+                data_req.update_state(message)?;
                 continue;
             };
 
@@ -106,6 +106,22 @@ impl UpdateState<&SCMessage, ()> for Location {
                 Ok(_) => info!("Added {} to {}", &key, self.name),
                 Err(e) => warn!("{}", e),
             }
+        }
+
+        Ok(())
+    }
+}
+
+impl UpdateState<SystemTime> for Location {
+    fn update_state(&mut self, timestamp: SystemTime) -> Result<()> {
+        // Update local data requirements
+        for (_, data_req) in self.data_requirements.iter_mut() {
+            data_req.update_state(timestamp)?;
+        }
+
+        // Update child locations
+        for (_, loc) in self.locations.iter_mut() {
+            loc.update_state(timestamp)?;
         }
 
         Ok(())

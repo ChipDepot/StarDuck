@@ -1,10 +1,11 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::Add};
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::time::{Duration, SystemTime};
+use uuid::Uuid;
 
-use crate::{traits::UpdateState, Status};
+use crate::{traits::UpdateState, SCMessage, Status};
 
 use super::{Component, IoTOutput};
 
@@ -12,7 +13,6 @@ use super::{Component, IoTOutput};
 pub struct DataRequirement {
     pub components: Vec<Component>,
     pub required_count: usize,
-    #[serde(default)]
     pub timeout: Option<Duration>,
     pub status: Status,
     pub output: IoTOutput,
@@ -20,6 +20,10 @@ pub struct DataRequirement {
 
 impl DataRequirement {
     pub fn new(required_count: usize, timeout: Option<Duration>, output: IoTOutput) -> Self {
+        if let Some(dur) = timeout {
+            if dur.is_zero() {}
+        }
+
         Self {
             components: Vec::new(),
             required_count,
@@ -39,17 +43,81 @@ impl DataRequirement {
 
         new_data_req
     }
-}
 
-impl UpdateState<IoTOutput, ()> for DataRequirement {
-    fn update_state(&mut self, iot_output: IoTOutput) -> Result<()> {
-        todo!()
+    pub fn get_component_by_uuid(&self, uuid_to_find: Uuid) -> Option<&Component> {
+        self.components
+            .iter()
+            .find(|&component| component.uuid.map_or(false, |uuid| uuid == uuid_to_find))
+    }
+
+    pub fn find_mut_component_by_uuid(&mut self, uuid_to_find: Uuid) -> Option<&mut Component> {
+        self.components
+            .iter_mut()
+            .find(|component| component.uuid.map_or(false, |uuid| uuid == uuid_to_find))
+    }
+
+    fn set_all_component_status(&mut self, status: Status) {
+        for comp in self.components.iter_mut() {
+            comp.status = status;
+        }
+    }
+
+    fn validate_timeout(&mut self) -> bool {
+        // False means it doesn't have a timeout, true means it has a valid one
+        if let Some(timeout) = self.timeout {
+            if timeout.is_zero() {
+                // This means that it's not really needed
+                self.timeout = None;
+                return false;
+            }
+        } else {
+            return false;
+        }
+        true
     }
 }
 
-impl UpdateState<SystemTime, ()> for DataRequirement {
+impl UpdateState<&SCMessage> for DataRequirement {
+    fn update_state(&mut self, message: &SCMessage) -> Result<()> {
+        if let Some(comp) = self.find_mut_component_by_uuid(message.device_uuid) {
+            comp.update_state(message)?;
+        }
+
+        let mut new_comp =
+            Component::with_defaults(&message.generate_name(), Some(message.device_uuid));
+        new_comp.update_state(message)?;
+
+        Ok(())
+    }
+}
+
+impl UpdateState<SystemTime> for DataRequirement {
     fn update_state(&mut self, timestamp: SystemTime) -> Result<()> {
-        todo!()
+        // Guard for timeout-less data requirements
+        if !self.validate_timeout() {
+            self.set_all_component_status(Status::Coherent);
+            return Ok(());
+        };
+
+        for comp in self.components.iter_mut() {
+            if let Some(last_time) = comp.last_reading {
+                let timeout_time = last_time.add(self.timeout.unwrap());
+
+                match timestamp.duration_since(timeout_time) {
+                    // Means that time timeout is earlier than the current, ergo Fault
+                    Ok(_) => comp.status = Status::Fault,
+                    // Means that the timeout is in the future! So we gucci
+                    Err(_) => comp.status = Status::Coherent,
+                }
+
+                return Ok(());
+            }
+
+            // If the component has no last_reading, then we default to fault
+            comp.status = Status::Fault;
+        }
+
+        Ok(())
     }
 }
 
