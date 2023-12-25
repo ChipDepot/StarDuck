@@ -1,9 +1,12 @@
-pub mod apps;
-pub mod components;
-pub mod locations;
-pub mod message;
+mod apps;
+mod components;
+mod locations;
+mod messages;
+pub mod traits;
 
-pub use apps::application;
-pub use components::{component, properties};
-pub use locations::location;
-pub use message::sc_message;
+pub use apps::{Application, Status};
+pub use components::{
+    Component, ComponentError, ComponentType, DataRequirement, IoTOutput, Property,
+};
+pub use locations::Location;
+pub use messages::{CallbackMessage, SCMessage};
