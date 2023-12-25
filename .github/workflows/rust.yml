@@ -15,7 +15,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - run: cd ./starduck
+    - run: pwd
+    - run: ls
+    - run: cd /
     - uses: actions/checkout@v3
     - name: Build
       run: cargo build --verbose
