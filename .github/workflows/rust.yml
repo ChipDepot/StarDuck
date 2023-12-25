@@ -16,10 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - run: pwd
-    - run: ls
-    - run: cd ..
     - name: Build
+      working-directory: ./starduck
       run: cargo build --verbose
     - name: Run tests
+      working-directory: ./starduck
       run: cargo test --verbose
