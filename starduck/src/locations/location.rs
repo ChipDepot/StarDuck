@@ -6,7 +6,7 @@ use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::traits::UpdateState;
+use crate::traits::{UpdateState, UpdateStateFrom};
 use crate::{Component, DataRequirement, IoTOutput, SCMessage, Status};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -88,15 +88,49 @@ impl Location {
             }
         }
     }
+
+    pub fn get_data_requirement_status(&self) -> Vec<Status> {
+        self.data_requirements
+            .values()
+            .map(|data_req| data_req.status.clone())
+            .collect()
+    }
 }
 
-impl UpdateState<&SCMessage> for Location {
-    fn update_state(&mut self, message: &SCMessage) -> Result<()> {
+impl UpdateState for Location {
+    fn update_state(&mut self) -> Result<()> {
+        let data_statuses = self.get_data_requirement_status();
+        let total_num_data_req = self.data_requirements.iter().count();
+        let mut status_count =
+            data_statuses
+                .into_iter()
+                .fold(HashMap::<Status, usize>::new(), |mut acc, status| {
+                    *acc.entry(status).or_insert(0) += 1;
+                    acc
+                });
+
+        if *status_count.get(&Status::Coherent).unwrap_or(&0) == total_num_data_req {
+            self.status = Status::Coherent;
+            return Ok(());
+        }
+
+        let _ = status_count.remove(&Status::Coherent);
+
+        if let Some((k, _)) = status_count.iter().max_by_key(|&(_, v)| v) {
+            self.status = *k;
+        }
+
+        Ok(())
+    }
+}
+
+impl UpdateStateFrom<&SCMessage> for Location {
+    fn update_state_from(&mut self, message: &SCMessage) -> Result<()> {
         for (key, value) in message.get_device_outputs() {
             let rec_iot = IoTOutput::from(value);
 
             if let Some(data_req) = self.data_requirements.get_mut(&key) {
-                data_req.update_state(message)?;
+                data_req.update_state_from(message)?;
                 continue;
             };
 
@@ -112,16 +146,16 @@ impl UpdateState<&SCMessage> for Location {
     }
 }
 
-impl UpdateState<SystemTime> for Location {
-    fn update_state(&mut self, timestamp: SystemTime) -> Result<()> {
+impl UpdateStateFrom<SystemTime> for Location {
+    fn update_state_from(&mut self, timestamp: SystemTime) -> Result<()> {
         // Update local data requirements
         for (_, data_req) in self.data_requirements.iter_mut() {
-            data_req.update_state(timestamp)?;
+            data_req.update_state_from(timestamp)?;
         }
 
         // Update child locations
         for (_, loc) in self.locations.iter_mut() {
-            loc.update_state(timestamp)?;
+            loc.update_state_from(timestamp)?;
         }
 
         Ok(())

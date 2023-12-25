@@ -5,7 +5,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{traits::UpdateState, SCMessage, Status};
+use crate::{traits::UpdateStateFrom, SCMessage, Status};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Component {
@@ -43,8 +43,8 @@ impl Component {
     }
 }
 
-impl UpdateState<&SCMessage> for Component {
-    fn update_state(&mut self, message: &SCMessage) -> Result<()> {
+impl UpdateStateFrom<&SCMessage> for Component {
+    fn update_state_from(&mut self, message: &SCMessage) -> Result<()> {
         self.last_reading = Some(message.timestamp);
         self.status = Status::Coherent;
 

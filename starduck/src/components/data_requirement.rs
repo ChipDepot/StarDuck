@@ -5,7 +5,10 @@ use serde::{Deserialize, Serialize};
 use std::time::{Duration, SystemTime};
 use uuid::Uuid;
 
-use crate::{traits::UpdateState, SCMessage, Status};
+use crate::{
+    traits::{UpdateState, UpdateStateFrom},
+    SCMessage, Status,
+};
 
 use super::{Component, IoTOutput};
 
@@ -56,6 +59,13 @@ impl DataRequirement {
             .find(|component| component.uuid.map_or(false, |uuid| uuid == uuid_to_find))
     }
 
+    fn valid_component_count(&self) -> usize {
+        self.components
+            .iter()
+            .filter(|&comp| comp.status == Status::Coherent)
+            .count()
+    }
+
     fn set_all_component_status(&mut self, status: Status) {
         for comp in self.components.iter_mut() {
             comp.status = status;
@@ -77,22 +87,36 @@ impl DataRequirement {
     }
 }
 
-impl UpdateState<&SCMessage> for DataRequirement {
-    fn update_state(&mut self, message: &SCMessage) -> Result<()> {
+impl UpdateState for DataRequirement {
+    fn update_state(&mut self) -> Result<()> {
+        let valid_count = self.valid_component_count();
+
+        if valid_count >= self.required_count {
+            self.status = Status::Coherent;
+        } else {
+            self.status = Status::Fault;
+        };
+
+        return Ok(());
+    }
+}
+
+impl UpdateStateFrom<&SCMessage> for DataRequirement {
+    fn update_state_from(&mut self, message: &SCMessage) -> Result<()> {
         if let Some(comp) = self.find_mut_component_by_uuid(message.device_uuid) {
-            comp.update_state(message)?;
+            comp.update_state_from(message)?;
         }
 
         let mut new_comp =
             Component::with_defaults(&message.generate_name(), Some(message.device_uuid));
-        new_comp.update_state(message)?;
+        new_comp.update_state_from(message)?;
 
         Ok(())
     }
 }
 
-impl UpdateState<SystemTime> for DataRequirement {
-    fn update_state(&mut self, timestamp: SystemTime) -> Result<()> {
+impl UpdateStateFrom<SystemTime> for DataRequirement {
+    fn update_state_from(&mut self, timestamp: SystemTime) -> Result<()> {
         // Guard for timeout-less data requirements
         if !self.validate_timeout() {
             self.set_all_component_status(Status::Coherent);

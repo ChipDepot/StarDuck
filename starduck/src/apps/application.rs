@@ -3,7 +3,7 @@ use std::time::SystemTime;
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::{traits::UpdateState, Location, SCMessage, Status};
+use crate::{traits::UpdateStateFrom, Location, SCMessage, Status};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Application {
@@ -26,8 +26,8 @@ impl Application {
     }
 }
 
-impl UpdateState<&SCMessage> for Application {
-    fn update_state(&mut self, message: &SCMessage) -> Result<()> {
+impl UpdateStateFrom<&SCMessage> for Application {
+    fn update_state_from(&mut self, message: &SCMessage) -> Result<()> {
         let location_key = match message.get_location_key() {
             Some(k) => k,
             None => {
@@ -42,15 +42,15 @@ impl UpdateState<&SCMessage> for Application {
 
         self.last_update = Some(SystemTime::now());
 
-        location.update_state(message)
+        location.update_state_from(message)
     }
 }
 
-impl UpdateState<SystemTime> for Application {
-    fn update_state(&mut self, timestamp: SystemTime) -> Result<()> {
+impl UpdateStateFrom<SystemTime> for Application {
+    fn update_state_from(&mut self, timestamp: SystemTime) -> Result<()> {
         self.last_update = Some(timestamp);
 
         // Update child locations from root
-        self.locations.update_state(timestamp)
+        self.locations.update_state_from(timestamp)
     }
 }
