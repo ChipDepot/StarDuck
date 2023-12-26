@@ -2,6 +2,8 @@
 name = "starduck"
 version = "0.1.0"
 edition = "2021"
+description = "StarDuck is the main library named after the project code name. It houses the model for Smart Campus UIS apps."
+license = "Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
