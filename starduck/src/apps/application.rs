@@ -8,6 +8,7 @@ use crate::{traits::UpdateStateFrom, Location, SCMessage, Status};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Application {
     pub name: String,
+    pub description: Option<String>,
     pub status: Status,
     pub locations: Location,
     pub last_update: Option<SystemTime>,
@@ -16,9 +17,10 @@ pub struct Application {
 impl Application {
     pub const LOCATIONS: &str = "locations";
 
-    pub fn new(name: &str) -> Self {
+    pub fn new(name: &str, description: Option<&str>) -> Self {
         Self {
             name: name.to_string(),
+            description: description.map(|k| k.to_string()),
             status: Status::Uninitialized,
             locations: Location::new("root", None),
             last_update: None,
