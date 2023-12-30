@@ -31,10 +31,10 @@ pub struct SCMessage {
 impl SCMessage {
     const LOCATION_KEYWORD: &str = "location";
 
-    pub fn get_location_key(&self) -> Option<String> {
+    pub fn get_location_key(&self) -> Option<&str> {
         self.values
             .get(Self::LOCATION_KEYWORD)
-            .map(|s| s.to_string())
+            .map(|s| s.as_str())?
     }
 
     pub fn get_device_outputs(&self) -> HashMap<String, Value> {
