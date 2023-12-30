@@ -2,6 +2,7 @@ use std::{fmt::Display, ops::Add};
 
 use anyhow::Result;
 use chrono::{Duration, NaiveDateTime};
+use log::debug;
 use serde::{Deserialize, Serialize};
 
 use uuid::Uuid;
@@ -125,7 +126,7 @@ impl UpdateStateFrom<NaiveDateTime> for DataRequirement {
         // Guard for timeout-less data requirements
         if !self.validate_timeout() {
             self.set_all_component_status(Status::Coherent);
-            return Ok(());
+            return self.update_state();
         };
 
         for comp in self.components.iter_mut() {
@@ -142,15 +143,14 @@ impl UpdateStateFrom<NaiveDateTime> for DataRequirement {
                 }
 
                 comp.last_reading = Some(timestamp);
-
-                return Ok(());
+                continue;
             }
 
             // If the component has no last_reading, then we default to fault
             comp.status = Status::Fault;
         }
 
-        Ok(())
+        self.update_state()
     }
 }
 

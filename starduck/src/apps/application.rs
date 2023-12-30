@@ -1,8 +1,12 @@
 use anyhow::{bail, Result};
 use chrono::{NaiveDateTime, Utc};
+use log::{debug, info};
 use serde::{Deserialize, Serialize};
 
-use crate::{traits::UpdateStateFrom, Location, SCMessage, Status};
+use crate::{
+    traits::{UpdateState, UpdateStateFrom},
+    Location, SCMessage, Status,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Application {
@@ -24,6 +28,15 @@ impl Application {
             locations: Location::new("root", None),
             last_update: None,
         }
+    }
+}
+
+impl UpdateState for Application {
+    fn update_state(&mut self) -> Result<()> {
+        // The status of the application is the same as the status of the root
+        self.status = self.locations.status;
+
+        Ok(())
     }
 }
 
@@ -52,6 +65,8 @@ impl UpdateStateFrom<NaiveDateTime> for Application {
         self.last_update = Some(timestamp);
 
         // Update child locations from root
-        self.locations.update_state_from(timestamp)
+        self.locations.update_state_from(timestamp)?;
+
+        self.update_state()
     }
 }

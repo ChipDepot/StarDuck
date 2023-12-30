@@ -90,29 +90,59 @@ impl Location {
             .map(|data_req| data_req.status.clone())
             .collect()
     }
+
+    pub fn get_locations_status(&self) -> Vec<Status> {
+        self.locations
+            .values()
+            .map(|data_req| data_req.status.clone())
+            .collect()
+    }
 }
 
 impl UpdateState for Location {
     fn update_state(&mut self) -> Result<()> {
-        let data_statuses = self.get_data_requirement_status();
-        let total_num_data_req = self.data_requirements.iter().count();
-        let mut status_count =
-            data_statuses
-                .into_iter()
-                .fold(HashMap::<Status, usize>::new(), |mut acc, status| {
+        if self.locations.is_empty() {
+            let data_statuses = self.get_data_requirement_status();
+            let total_num_data_req = self.data_requirements.iter().count();
+            let mut status_count = data_statuses.into_iter().fold(
+                HashMap::<Status, usize>::new(),
+                |mut acc, status| {
                     *acc.entry(status).or_insert(0) += 1;
                     acc
-                });
+                },
+            );
 
-        if *status_count.get(&Status::Coherent).unwrap_or(&0) == total_num_data_req {
-            self.status = Status::Coherent;
-            return Ok(());
-        }
+            if *status_count.get(&Status::Coherent).unwrap_or(&0) == total_num_data_req {
+                self.status = Status::Coherent;
+                return Ok(());
+            }
 
-        let _ = status_count.remove(&Status::Coherent);
+            let _ = status_count.remove(&Status::Coherent);
 
-        if let Some((k, _)) = status_count.iter().max_by_key(|&(_, v)| v) {
-            self.status = *k;
+            if let Some((k, _)) = status_count.iter().max_by_key(|&(_, v)| v) {
+                self.status = *k;
+            }
+        } else {
+            let loc_statuses = self.get_locations_status();
+            let total_num_locations = self.locations.iter().count();
+            let mut status_count = loc_statuses.into_iter().fold(
+                HashMap::<Status, usize>::new(),
+                |mut acc, status| {
+                    *acc.entry(status).or_insert(0) += 1;
+                    acc
+                },
+            );
+
+            if *status_count.get(&Status::Coherent).unwrap_or(&0) == total_num_locations {
+                self.status = Status::Coherent;
+                return Ok(());
+            }
+
+            let _ = status_count.remove(&Status::Coherent);
+
+            if let Some((k, _)) = status_count.iter().max_by_key(|&(_, v)| v) {
+                self.status = *k;
+            }
         }
 
         Ok(())
@@ -153,7 +183,7 @@ impl UpdateStateFrom<NaiveDateTime> for Location {
             loc.update_state_from(timestamp)?;
         }
 
-        Ok(())
+        self.update_state()
     }
 }
 
