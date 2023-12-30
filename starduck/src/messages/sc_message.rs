@@ -1,8 +1,8 @@
-use std::time::SystemTime;
 use std::{collections::HashMap, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use serde_with::chrono::NaiveDateTime;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -10,7 +10,8 @@ pub struct SCMessage {
     #[serde(rename = "deviceUUID")]
     pub device_uuid: Uuid,
     pub topic: String,
-    pub timestamp: SystemTime,
+    #[serde(rename = "timeStamp")]
+    pub timestamp: NaiveDateTime,
     pub values: HashMap<String, Value>,
     pub status: String,
     pub alert: bool,

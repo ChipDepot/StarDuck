@@ -1,8 +1,8 @@
 use std::fmt::Display;
-use std::time::SystemTime;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use serde_with::chrono::{NaiveDateTime, Utc};
 use uuid::Uuid;
 
 use crate::{traits::UpdateStateFrom, SCMessage, Status};
@@ -12,7 +12,7 @@ pub struct Component {
     pub name: String,
     pub uuid: Option<Uuid>,
     pub status: Status,
-    pub last_reading: Option<SystemTime>,
+    pub last_reading: Option<NaiveDateTime>,
 }
 
 impl Component {
@@ -28,17 +28,14 @@ impl Component {
     pub fn with_defaults(name: &str, uuid: Option<Uuid>) -> Self {
         let mut new_comp = Self::new(name, uuid);
         new_comp.status = Status::Coherent;
-        new_comp.last_reading = Some(SystemTime::now());
+        new_comp.last_reading = Some(Utc::now().naive_local());
 
         new_comp
     }
 
-    pub fn update_timeout_status(&mut self, max_time: SystemTime) {
-        if let Some(last) = self.last_reading {
-            match max_time.duration_since(last) {
-                Ok(_q) => todo!(),
-                Err(_) => todo!(),
-            }
+    pub fn update_timeout_status(&mut self, _max_time: NaiveDateTime) {
+        if let Some(_last) = self.last_reading {
+            todo!()
         }
     }
 }

@@ -1,9 +1,12 @@
 use std::{fmt::Display, ops::Add};
 
 use anyhow::Result;
+use chrono::{Duration, NaiveDateTime};
 use serde::{Deserialize, Serialize};
-use std::time::{Duration, SystemTime};
+
 use uuid::Uuid;
+
+use serde_with::serde_as;
 
 use crate::{
     traits::{UpdateState, UpdateStateFrom},
@@ -12,10 +15,12 @@ use crate::{
 
 use super::{Component, IoTOutput};
 
+#[serde_as]
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DataRequirement {
     pub components: Vec<Component>,
     pub required_count: usize,
+    #[serde_as(as = "Option<serde_with::DurationSeconds<i64>>")]
     pub timeout: Option<Duration>,
     pub status: Status,
     pub output: IoTOutput,
@@ -115,8 +120,8 @@ impl UpdateStateFrom<&SCMessage> for DataRequirement {
     }
 }
 
-impl UpdateStateFrom<SystemTime> for DataRequirement {
-    fn update_state_from(&mut self, timestamp: SystemTime) -> Result<()> {
+impl UpdateStateFrom<NaiveDateTime> for DataRequirement {
+    fn update_state_from(&mut self, timestamp: NaiveDateTime) -> Result<()> {
         // Guard for timeout-less data requirements
         if !self.validate_timeout() {
             self.set_all_component_status(Status::Coherent);
@@ -127,12 +132,16 @@ impl UpdateStateFrom<SystemTime> for DataRequirement {
             if let Some(last_time) = comp.last_reading {
                 let timeout_time = last_time.add(self.timeout.unwrap());
 
-                match timestamp.duration_since(timeout_time) {
-                    // Means that time timeout is earlier than the current, ergo Fault
-                    Ok(_) => comp.status = Status::Fault,
-                    // Means that the timeout is in the future! So we gucci
-                    Err(_) => comp.status = Status::Coherent,
+                let time_diff = timestamp.signed_duration_since(timeout_time);
+
+                // Means that time timeout is earlier than the current, ergo Fault
+                if time_diff.num_seconds() >= 0 {
+                    comp.status = Status::Fault;
+                } else {
+                    comp.status = Status::Coherent;
                 }
+
+                comp.last_reading = Some(timestamp);
 
                 return Ok(());
             }
