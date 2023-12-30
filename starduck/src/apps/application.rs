@@ -17,8 +17,6 @@ pub struct Application {
 }
 
 impl Application {
-    pub const LOCATIONS: &str = "locations";
-
     pub fn new(name: &str, description: Option<&str>) -> Self {
         Self {
             name: name.to_string(),
