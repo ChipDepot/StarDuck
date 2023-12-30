@@ -143,7 +143,6 @@ impl UpdateStateFrom<NaiveDateTime> for DataRequirement {
                     comp.status = Status::Coherent;
                 }
 
-                comp.last_reading = Some(timestamp);
                 continue;
             }
 
