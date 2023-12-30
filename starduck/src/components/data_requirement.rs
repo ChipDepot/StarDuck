@@ -1,8 +1,7 @@
 use std::{fmt::Display, ops::Add};
 
-use anyhow::Result;
+use anyhow::{Ok, Result};
 use chrono::{Duration, NaiveDateTime};
-use log::debug;
 use serde::{Deserialize, Serialize};
 
 use uuid::Uuid;
@@ -110,12 +109,14 @@ impl UpdateState for DataRequirement {
 impl UpdateStateFrom<&SCMessage> for DataRequirement {
     fn update_state_from(&mut self, message: &SCMessage) -> Result<()> {
         if let Some(comp) = self.find_mut_component_by_uuid(message.device_uuid) {
-            comp.update_state_from(message)?;
+            return comp.update_state_from(message);
         }
 
         let mut new_comp =
             Component::with_defaults(&message.generate_name(), Some(message.device_uuid));
         new_comp.update_state_from(message)?;
+
+        self.components.push(new_comp);
 
         Ok(())
     }

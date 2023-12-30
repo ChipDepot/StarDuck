@@ -1,6 +1,5 @@
 use anyhow::{bail, Result};
 use chrono::{NaiveDateTime, Utc};
-use log::{debug, info};
 use serde::{Deserialize, Serialize};
 
 use crate::{
