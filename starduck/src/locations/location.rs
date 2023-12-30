@@ -2,7 +2,7 @@ use std::{collections::HashMap, net::IpAddr};
 
 use anyhow::{bail, Result};
 use chrono::NaiveDateTime;
-use log::{debug, info, warn};
+use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -155,7 +155,6 @@ impl UpdateStateFrom<&SCMessage> for Location {
             let rec_iot = IoTOutput::from(value);
 
             if let Some(data_req) = self.data_requirements.get_mut(&key) {
-                debug!("Now here!");
                 data_req.update_state_from(message)?;
                 continue;
             };
