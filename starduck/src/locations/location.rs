@@ -1,7 +1,7 @@
-use std::time::SystemTime;
 use std::{collections::HashMap, net::IpAddr};
 
 use anyhow::{bail, Result};
+use chrono::NaiveDateTime;
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -141,8 +141,8 @@ impl UpdateStateFrom<&SCMessage> for Location {
     }
 }
 
-impl UpdateStateFrom<SystemTime> for Location {
-    fn update_state_from(&mut self, timestamp: SystemTime) -> Result<()> {
+impl UpdateStateFrom<NaiveDateTime> for Location {
+    fn update_state_from(&mut self, timestamp: NaiveDateTime) -> Result<()> {
         // Update local data requirements
         for (_, data_req) in self.data_requirements.iter_mut() {
             data_req.update_state_from(timestamp)?;

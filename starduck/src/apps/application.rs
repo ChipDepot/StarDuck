@@ -1,6 +1,5 @@
-use std::time::SystemTime;
-
 use anyhow::{bail, Result};
+use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{traits::UpdateStateFrom, Location, SCMessage, Status};
@@ -11,7 +10,7 @@ pub struct Application {
     pub description: Option<String>,
     pub status: Status,
     pub locations: Location,
-    pub last_update: Option<SystemTime>,
+    pub last_update: Option<NaiveDateTime>,
 }
 
 impl Application {
@@ -42,14 +41,14 @@ impl UpdateStateFrom<&SCMessage> for Application {
             None => bail!("No location was found for key `{}`", &location_key),
         };
 
-        self.last_update = Some(SystemTime::now());
+        self.last_update = Some(Utc::now().naive_local());
 
         location.update_state_from(message)
     }
 }
 
-impl UpdateStateFrom<SystemTime> for Application {
-    fn update_state_from(&mut self, timestamp: SystemTime) -> Result<()> {
+impl UpdateStateFrom<NaiveDateTime> for Application {
+    fn update_state_from(&mut self, timestamp: NaiveDateTime) -> Result<()> {
         self.last_update = Some(timestamp);
 
         // Update child locations from root
