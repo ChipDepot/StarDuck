@@ -10,3 +10,5 @@ pub use components::{
 };
 pub use locations::Location;
 pub use messages::{CallbackMessage, SCMessage};
+
+pub use traits::WithOffset;

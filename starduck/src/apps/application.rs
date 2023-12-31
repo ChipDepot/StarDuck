@@ -3,7 +3,7 @@ use chrono::{NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    traits::{UpdateState, UpdateStateFrom},
+    traits::{UpdateState, UpdateStateFrom, WithOffset},
     Location, SCMessage, Status,
 };
 
@@ -51,7 +51,7 @@ impl UpdateStateFrom<&SCMessage> for Application {
             None => bail!("No location was found for key `{}`", &location_key),
         };
 
-        self.last_update = Some(Utc::now().naive_local());
+        self.last_update = Some(Utc::now_with_offset());
 
         location.update_state_from(message)
     }

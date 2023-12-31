@@ -5,7 +5,10 @@ use serde::{Deserialize, Serialize};
 use serde_with::chrono::{NaiveDateTime, Utc};
 use uuid::Uuid;
 
-use crate::{traits::UpdateStateFrom, SCMessage, Status};
+use crate::{
+    traits::{UpdateStateFrom, WithOffset},
+    SCMessage, Status,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Component {
@@ -28,7 +31,7 @@ impl Component {
     pub fn with_defaults(name: &str, uuid: Option<Uuid>) -> Self {
         let mut new_comp = Self::new(name, uuid);
         new_comp.status = Status::Coherent;
-        new_comp.last_reading = Some(Utc::now().naive_local());
+        new_comp.last_reading = Some(Utc::now_with_offset());
 
         new_comp
     }
