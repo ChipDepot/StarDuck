@@ -1,8 +1,10 @@
+mod adaptation;
 mod apps;
 mod components;
 mod locations;
 mod messages;
 pub mod traits;
+pub mod utils;
 
 pub use apps::{Application, Status};
 pub use components::{

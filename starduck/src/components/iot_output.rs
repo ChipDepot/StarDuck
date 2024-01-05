@@ -16,10 +16,10 @@ pub enum IoTOutput {
 impl Display for IoTOutput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            IoTOutput::Number => write!(f, "Number"),
-            IoTOutput::Boolean => write!(f, "Boolean"),
-            IoTOutput::Text => write!(f, "Text"),
-            IoTOutput::Invalid => write!(f, "Invalid"),
+            IoTOutput::Number => write!(f, "number"),
+            IoTOutput::Boolean => write!(f, "boolean"),
+            IoTOutput::Text => write!(f, "text"),
+            IoTOutput::Invalid => write!(f, "invalid"),
         }
     }
 }
