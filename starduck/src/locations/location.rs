@@ -76,19 +76,34 @@ impl Location {
                     return Ok(());
                 }
 
-                let new_data_req = DataRequirement::with_defaults(new_comp, iot_output);
-                self.data_requirements.insert(key.to_string(), new_data_req);
+                // let new_data_req = DataRequirement::with_defaults(new_comp, iot_output);
+                // self.data_requirements.insert(key.to_string(), new_data_req);
 
                 Ok(())
             }
         }
     }
 
-    pub fn get_data_requirement_status(&self) -> Vec<Status> {
+    fn get_data_requirement_statuses(&self, required: bool) -> Vec<Status> {
         self.data_requirements
             .values()
+            .filter(|k| k.required == required)
             .map(|data_req| data_req.status.clone())
             .collect()
+    }
+
+    fn get_data_requirement_statuses_count(&self, required: bool, status: Status) -> usize {
+        self.data_requirements
+            .values()
+            .filter(|k| k.required == required && k.status == status)
+            .count()
+    }
+
+    fn get_data_requirement_count(&self, required: bool) -> usize {
+        self.data_requirements
+            .iter()
+            .filter(|(_, data)| data.required == required)
+            .count()
     }
 
     pub fn get_locations_status(&self) -> Vec<Status> {
@@ -102,47 +117,37 @@ impl Location {
 impl UpdateState for Location {
     fn update_state(&mut self) -> Result<()> {
         if self.locations.is_empty() {
-            let data_statuses = self.get_data_requirement_status();
-            let total_num_data_req = self.data_requirements.iter().count();
-            let mut status_count = data_statuses.into_iter().fold(
-                HashMap::<Status, usize>::new(),
-                |mut acc, status| {
-                    *acc.entry(status).or_insert(0) += 1;
-                    acc
-                },
-            );
+            // Data requirement location
+            let req_data_statuses_count =
+                self.get_data_requirement_statuses_count(true, Status::Coherent);
+            let total_req_data_req = self.get_data_requirement_count(true);
 
-            if *status_count.get(&Status::Coherent).unwrap_or(&0) == total_num_data_req {
-                self.status = Status::Coherent;
+            // Faults if any of the required components are in Fault
+            if req_data_statuses_count != total_req_data_req {
+                self.status = Status::Fault;
                 return Ok(());
             }
 
-            let _ = status_count.remove(&Status::Coherent);
+            let opt_data_statuses_count =
+                self.get_data_requirement_statuses_count(false, Status::Coherent);
+            let total_opt_data_req = self.get_data_requirement_count(false);
 
-            if let Some((k, _)) = status_count.iter().max_by_key(|&(_, v)| v) {
-                self.status = *k;
-            }
+            self.status = match (opt_data_statuses_count, total_opt_data_req) {
+                (count, total) if count == total => Status::Coherent,
+                (0, _) => Status::Critical,
+                _ => Status::Degraded,
+            };
+
+            return Ok(());
         } else {
             let loc_statuses = self.get_locations_status();
-            let total_num_locations = self.locations.iter().count();
-            let mut status_count = loc_statuses.into_iter().fold(
-                HashMap::<Status, usize>::new(),
-                |mut acc, status| {
-                    *acc.entry(status).or_insert(0) += 1;
-                    acc
-                },
-            );
 
-            if *status_count.get(&Status::Coherent).unwrap_or(&0) == total_num_locations {
-                self.status = Status::Coherent;
-                return Ok(());
-            }
-
-            let _ = status_count.remove(&Status::Coherent);
-
-            if let Some((k, _)) = status_count.iter().max_by_key(|&(_, v)| v) {
-                self.status = *k;
-            }
+            self.status = match () {
+                _ if loc_statuses.contains(&Status::Fault) => Status::Fault,
+                _ if loc_statuses.contains(&Status::Critical) => Status::Critical,
+                _ if loc_statuses.contains(&Status::Degraded) => Status::Degraded,
+                _ => Status::Coherent,
+            };
         }
 
         Ok(())
@@ -151,20 +156,20 @@ impl UpdateState for Location {
 
 impl UpdateStateFrom<&SCMessage> for Location {
     fn update_state_from(&mut self, message: &SCMessage) -> Result<()> {
-        for (key, value) in message.get_device_outputs() {
-            let rec_iot = IoTOutput::from(value);
+        for (key, _value) in message.get_device_outputs() {
+            // let rec_iot = IoTOutput::from(value);
 
             if let Some(data_req) = self.data_requirements.get_mut(&key) {
                 data_req.update_state_from(message)?;
                 continue;
             };
 
-            info!("New undeclared device output from {}", self.name);
+            warn!("Undeclared device output {} from {}", &key, self.name);
 
-            match self.register_new_component(message.device_uuid, &key, rec_iot) {
-                Ok(_) => info!("Added {} to {}", &key, self.name),
-                Err(e) => warn!("{}", e),
-            }
+            // match self.register_new_component(message.device_uuid, &key, rec_iot) {
+            //     Ok(_) => info!("Added {} to {}", &key, self.nam e),
+            //     Err(e) => warn!("{}", e),
+            // }
         }
 
         Ok(())

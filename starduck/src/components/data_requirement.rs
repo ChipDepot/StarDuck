@@ -19,7 +19,8 @@ use super::{Component, IoTOutput};
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DataRequirement {
     pub components: Vec<Component>,
-    pub required_count: usize,
+    pub required: bool,
+    pub count: usize,
     #[serde_as(as = "Option<serde_with::DurationSeconds<i64>>")]
     pub timeout: Option<Duration>,
     pub status: Status,
@@ -27,25 +28,26 @@ pub struct DataRequirement {
 }
 
 impl DataRequirement {
-    pub fn new(required_count: usize, timeout: Option<Duration>, output: IoTOutput) -> Self {
+    pub fn new(count: usize, required: bool, timeout: Option<Duration>, output: IoTOutput) -> Self {
         if let Some(dur) = timeout {
             if dur.is_zero() {}
         }
 
         Self {
             components: Vec::new(),
-            required_count,
+            count,
+            required,
             timeout,
             status: Status::Uninitialized,
             output,
         }
     }
 
-    pub fn with_defaults(component: Component, output: IoTOutput) -> Self {
+    pub fn with_defaults(component: Component, required: bool, output: IoTOutput) -> Self {
         let default_count = 0;
         let default_duration = None;
 
-        let mut new_data_req = Self::new(default_count, default_duration, output);
+        let mut new_data_req = Self::new(default_count, required, default_duration, output);
         new_data_req.status = Status::Coherent;
         new_data_req.components.push(component);
 
@@ -96,7 +98,7 @@ impl UpdateState for DataRequirement {
     fn update_state(&mut self) -> Result<()> {
         let valid_count = self.valid_component_count();
 
-        if valid_count >= self.required_count {
+        if valid_count >= self.count {
             self.status = Status::Coherent;
         } else {
             self.status = Status::Fault;
