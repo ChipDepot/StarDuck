@@ -2,7 +2,7 @@ use std::{collections::HashMap, net::IpAddr};
 
 use anyhow::{bail, Result};
 use chrono::NaiveDateTime;
-use log::{info, warn};
+use log::warn;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -82,14 +82,6 @@ impl Location {
                 Ok(())
             }
         }
-    }
-
-    fn get_data_requirement_statuses(&self, required: bool) -> Vec<Status> {
-        self.data_requirements
-            .values()
-            .filter(|k| k.required == required)
-            .map(|data_req| data_req.status.clone())
-            .collect()
     }
 
     fn get_data_requirement_statuses_count(&self, required: bool, status: Status) -> usize {
