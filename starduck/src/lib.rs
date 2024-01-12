@@ -11,6 +11,8 @@ pub use components::{
     Component, ComponentError, ComponentType, DataRequirement, IoTOutput, Property,
 };
 pub use locations::Location;
-pub use messages::{SCMessage, ExecMessage};
+pub use messages::{ExecMessage, SCMessage};
+
+pub use adaptation::{ApdatationMechanism, Doctrine};
 
 pub use traits::WithOffset;
