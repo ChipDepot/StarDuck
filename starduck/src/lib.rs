@@ -13,6 +13,6 @@ pub use components::{
 pub use locations::Location;
 pub use messages::{ExecMessage, SCMessage};
 
-pub use adaptation::{ApdatationMechanism, Doctrine};
+pub use adaptation::Directive;
 
 pub use traits::WithOffset;
