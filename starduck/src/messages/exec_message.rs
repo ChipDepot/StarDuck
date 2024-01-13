@@ -1,6 +1,9 @@
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::adaptation::Directive;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 
 pub struct ExecMessage {
     pub action: Directive,
