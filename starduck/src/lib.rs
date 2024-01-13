@@ -11,8 +11,8 @@ pub use components::{
     Component, ComponentError, ComponentType, DataRequirement, IoTOutput, Property,
 };
 pub use locations::Location;
-pub use messages::{ExecMessage, SCMessage};
+pub use messages::SCMessage;
 
-pub use adaptation::Directive;
+pub use adaptation::{AdditionOrder, ReconfigureOrder};
 
 pub use traits::WithOffset;
