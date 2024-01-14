@@ -15,6 +15,15 @@ pub enum ReconfigureType {
     },
 }
 
+impl ReconfigureType {
+    pub fn get_endpoint(&self) -> Option<PathBuf> {
+        match self {
+            ReconfigureType::Http { endpoint, .. } => Some(endpoint.clone()),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReconfigureOrder {
     pub uuid: Uuid,
