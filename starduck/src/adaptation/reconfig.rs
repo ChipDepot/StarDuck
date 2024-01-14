@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ReconfigureType {
     Http {
         endpoint: PathBuf,
@@ -15,6 +15,7 @@ pub enum ReconfigureType {
     },
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReconfigureOrder {
     pub uuid: Uuid,
     pub network: String,
