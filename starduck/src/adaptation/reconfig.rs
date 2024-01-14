@@ -9,6 +9,7 @@ use uuid::Uuid;
 pub enum ReconfigureType {
     Http {
         endpoint: PathBuf,
+        port: u16,
         #[serde(with = "http_serde::method")]
         method: Method,
         payload: Value,
