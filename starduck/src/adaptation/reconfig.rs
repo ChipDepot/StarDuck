@@ -22,10 +22,10 @@ pub struct ReconfigureOrder {
 }
 
 impl ReconfigureOrder {
-    pub fn new(uuid: Uuid, network: String, reconfig: ReconfigureType) -> Self {
+    pub fn new(uuid: Uuid, network: &str, reconfig: ReconfigureType) -> Self {
         Self {
             uuid,
-            network,
+            network: network.to_string(),
             reconfig,
         }
     }

@@ -13,14 +13,14 @@ pub struct AdditionOrder {
 
 impl AdditionOrder {
     pub fn new(
-        image: String,
-        network_name: String,
+        image: &str,
+        network_name: &str,
         env_vars: HashMap<String, Value>,
         args: Vec<String>,
     ) -> Self {
         Self {
-            image,
-            network_name,
+            image: image.to_string(),
+            network_name: network_name.to_string(),
             env_vars,
             args,
         }
