@@ -11,7 +11,6 @@ impl QueryType {
     pub fn get_endpoint(&self) -> Option<PathBuf> {
         match self {
             QueryType::Http { endpoint, .. } => Some(endpoint.clone()),
-            _ => None,
         }
     }
 }

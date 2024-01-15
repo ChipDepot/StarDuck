@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use http::{Method, Uri};
+use http::Method;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
@@ -27,7 +27,6 @@ impl ReconfigureType {
                 port,
                 endpoint.to_string_lossy()
             )),
-            _ => None,
         }
     }
 }
