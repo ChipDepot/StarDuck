@@ -7,7 +7,7 @@ pub struct Directives {
 }
 
 impl Directives {
-    fn new(addition: AdditionOrder, reconfig: ReconfigureOrder, restart: RestartOrder) -> Self {
+    pub fn new(addition: AdditionOrder, reconfig: ReconfigureOrder, restart: RestartOrder) -> Self {
         Directives {
             addition,
             reconfig,
