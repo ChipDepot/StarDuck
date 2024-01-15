@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use http::Method;
+use http::{Method, Uri};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
@@ -19,9 +19,14 @@ pub enum ReconfigureType {
 }
 
 impl ReconfigureType {
-    pub fn get_endpoint(&self) -> Option<PathBuf> {
+    pub fn build_url<I: AsRef<str>>(&self, domain: I) -> Option<String> {
         match self {
-            ReconfigureType::Http { endpoint, .. } => Some(endpoint.clone()),
+            ReconfigureType::Http { endpoint, port, .. } => Some(format!(
+                "https://{}:{}{}",
+                domain.as_ref(),
+                port,
+                endpoint.to_string_lossy()
+            )),
             _ => None,
         }
     }
