@@ -13,6 +13,8 @@ pub use components::{
 pub use locations::Location;
 pub use messages::SCMessage;
 
-pub use adaptation::{AdditionOrder, QueryType, ReconfigureOrder, ReconfigureType, RestartOrder};
+pub use adaptation::{
+    AdditionOrder, Directives, QueryType, ReconfigureOrder, ReconfigureType, RestartOrder,
+};
 
 pub use traits::WithOffset;
