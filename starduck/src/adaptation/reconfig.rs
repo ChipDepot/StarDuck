@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
+use crate::QueryType;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ReconfigureType {
     Http {
@@ -29,15 +31,22 @@ impl ReconfigureType {
 pub struct ReconfigureOrder {
     pub uuid: Uuid,
     pub network: String,
+    pub query_type: QueryType,
     pub reconfig: ReconfigureType,
 }
 
 impl ReconfigureOrder {
-    pub fn new(uuid: Uuid, network: &str, reconfig: ReconfigureType) -> Self {
+    pub fn new(
+        uuid: Uuid,
+        network: &str,
+        reconfig: ReconfigureType,
+        query_type: QueryType,
+    ) -> Self {
         Self {
             uuid,
             network: network.to_string(),
             reconfig,
+            query_type,
         }
     }
 }

@@ -1,11 +1,9 @@
 mod addition;
-mod modifiers;
+mod query;
 mod reconfig;
 mod restart;
 
-// pub use modifiers::Directive;
 pub use addition::AdditionOrder;
+pub use query::QueryType;
 pub use reconfig::{ReconfigureOrder, ReconfigureType};
-pub use restart::{QueryType, RestartOrder};
-
-// pub use
+pub use restart::RestartOrder;
