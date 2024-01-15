@@ -40,7 +40,7 @@ pub struct SCMessage {
 }
 
 impl SCMessage {
-    const LOCATION_KEYWORD: &str = "location";
+    const LOCATION_KEYWORD: &'static str = "location";
 
     pub fn get_location_key(&self) -> Option<&str> {
         self.values
