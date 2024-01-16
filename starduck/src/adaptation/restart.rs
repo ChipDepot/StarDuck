@@ -5,12 +5,15 @@ use super::QueryType;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RestartOrder {
-    pub uuid: Uuid,
+    pub uuid: Option<Uuid>,
     pub query_type: QueryType,
 }
 
 impl RestartOrder {
-    pub fn new(uuid: Uuid, query_type: QueryType) -> Self {
-        Self { uuid, query_type }
+    pub fn new(query_type: QueryType) -> Self {
+        Self {
+            uuid: None,
+            query_type,
+        }
     }
 }

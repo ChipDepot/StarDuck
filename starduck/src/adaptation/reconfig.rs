@@ -33,21 +33,16 @@ impl ReconfigureType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReconfigureOrder {
-    pub uuid: Uuid,
+    pub uuid: Option<Uuid>,
     pub network: String,
     pub query_type: QueryType,
     pub reconfig: ReconfigureType,
 }
 
 impl ReconfigureOrder {
-    pub fn new(
-        uuid: Uuid,
-        network: &str,
-        reconfig: ReconfigureType,
-        query_type: QueryType,
-    ) -> Self {
+    pub fn new(network: &str, reconfig: ReconfigureType, query_type: QueryType) -> Self {
         Self {
-            uuid,
+            uuid: None,
             network: network.to_string(),
             reconfig,
             query_type,
