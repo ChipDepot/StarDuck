@@ -4,17 +4,17 @@ use super::{AdditionOrder, ReconfigureOrder, RestartOrder};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Directives {
-    pub addition: AdditionOrder,
-    pub reconfig: ReconfigureOrder,
-    pub restart: RestartOrder,
+    pub addition: Option<AdditionOrder>,
+    pub reconfig: Option<ReconfigureOrder>,
+    pub restart: Option<RestartOrder>,
 }
 
 impl Directives {
-    pub fn new(addition: AdditionOrder, reconfig: ReconfigureOrder, restart: RestartOrder) -> Self {
+    pub fn new() -> Self {
         Directives {
-            addition,
-            reconfig,
-            restart,
+            addition: None,
+            reconfig: None,
+            restart: None,
         }
     }
 }
