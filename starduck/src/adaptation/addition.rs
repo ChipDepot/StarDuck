@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -30,21 +30,12 @@ impl AdditionOrder {
     }
 
     pub fn get_uuid(&self) -> Result<Uuid> {
-        let matching_uuids: Vec<Uuid> = self
-            .args
-            .iter()
-            .filter_map(|arg| {
-                if let Some(uuid_str) = arg.strip_prefix("device_uuid=") {
-                    return Uuid::parse_str(uuid_str).ok();
-                }
-                None
-            })
-            .collect();
-
-        match matching_uuids.len() {
-            0 => bail!("No matching device_uuid found"),
-            1 => Ok(matching_uuids[0]),
-            _ => bail!("More than one matching device_uuid found"),
+        if let Some(uuid) = self.env_vars.get("device_uuid").map(|arg| {
+            return Uuid::parse_str(arg.as_str().unwrap());
+        }) {
+            return uuid.with_context(|| "Could not parse Str as Uuid");
         }
+
+        bail!("No matching device_uuid found");
     }
 }
